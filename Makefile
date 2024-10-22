@@ -4,12 +4,12 @@ generate-allure-report:
 	allure serve allure-results -p 10000
 
 unit-tests:
-	dotnet test --filter "FullyQualifiedName~Unit" --no-build --no-restore
+	dotnet test Tests/BasedGram.Tests.Unit --no-build --no-restore
 
 integration-tests:
-	sudo docker compose up -d
-	dotnet test --filter "FullyQualifiedName~Integration" --no-build --no-restore
-	sudo docker compose down
+	docker compose up -d
+	dotnet test Tests/BasedGram.Tests.Integration --no-build --no-restore
+	docker compose down
 
 e2e-tests:
 	docker compose up -d
