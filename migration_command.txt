@@ -1,5 +1,0 @@
-зайти в ... Database.Context
-
-export PATH="$PATH:~/.dotnet/tools"
-dotnet ef migrations add UiMigration --startup-project ../../GraphProgForum.Backend/GraphProgForum.Backend.csproj --context GraphProgForumDbContext --project .
-dotnet ef database update UiMigration --startup-project ../../GraphProgForum.Backend/GraphProgForum.Backend.csproj --context GraphProgForumDbContext --project .
