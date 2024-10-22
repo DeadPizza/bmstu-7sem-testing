@@ -4,7 +4,7 @@ generate-allure-report:
 	allure serve allure-results -p 10000
 
 unit-tests:
-	dotnet test Tests/BasedGram.Tests.Unit --no-build --no-restore
+	dotnet test Tests/BasedGram.Tests.Unit
 
 integration-tests:
 	docker compose up -d
