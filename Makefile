@@ -8,12 +8,12 @@ unit-tests:
 
 integration-tests:
 	docker compose up -d
-	dotnet test Tests/BasedGram.Tests.Integration --no-build --no-restore
+	dotnet test Tests/BasedGram.Tests.Integration
 	docker compose down
 
 e2e-tests:
 	docker compose up -d
-	dotnet test --filter "FullyQualifiedName~E2ETests" --no-build --no-restore
+	# dotnet test --filter "FullyQualifiedName~E2ETests" --no-build --no-restore
 	docker compose down
 
 concat-reports:
