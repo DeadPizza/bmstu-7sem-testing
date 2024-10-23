@@ -77,7 +77,6 @@ public class DialogRepository(BasedGramNpgsqlDbContext context) : IDialogReposit
         var dialogDbModel = await m_context.Dialogs.FindAsync(dialog.ID);
         if (dialogDbModel is not null)
         {
-            dialogDbModel = DialogConverter.CoreToDbModel(dialog);
             dialogDbModel.IsBlockedFlag = dialog.IsBlockedFlag;
             // m_context.Dialogs.Update(DialogConverter.CoreToDbModel(dialog));
         }

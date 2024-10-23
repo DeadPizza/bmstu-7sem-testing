@@ -23,9 +23,9 @@ using MongoDB.Driver;
 using BasedGram.Common.Core;
 using Asp.Versioning;
 
-internal class Program
+public partial class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)

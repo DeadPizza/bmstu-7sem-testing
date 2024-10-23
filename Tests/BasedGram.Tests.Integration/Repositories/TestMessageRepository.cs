@@ -6,6 +6,8 @@ using BasedGram.Tests.Common.Factories.Db;
 using Moq;
 using Moq.EntityFrameworkCore;
 using BasedGram.Common.Core;
+using Microsoft.EntityFrameworkCore;
+using Abp.Extensions;
 
 namespace BasedGram.Tests.Integration.Repositories
 {
@@ -19,350 +21,295 @@ namespace BasedGram.Tests.Integration.Repositories
             m_messageRepository = new MessageRepository(m_dbFixture.CreateContext());
         }
 
-        // [Fact]
-        // public async Task CreateMessage_Ok()
-        // {
-        //     // Arrange
-        //     List<MessageDbModel> models = new List<MessageDbModel>();
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now.ToUniversalTime(),
-        //         "Test Content",
-        //         false, 0, "");
+        [Fact]
+        public async Task CreateMessage_Ok()
+        {
+            // Arrange
+            var users = await CreateDefaultUsers();
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.AddAsync(It.IsAny<MessageDbModel>(), It.IsAny<CancellationToken>()))
-        //         .Callback<MessageDbModel, CancellationToken>((a, token) => models.Add(a));
+            // Act
+            await m_messageRepository.CreateMessage(MessageConverter.DbToCoreModel(message));
 
-        //     // Act
-        //     await m_messageRepository.CreateMessage(MessageConverter.DbToCoreModel(message));
+            // Assert
+            var models = (from a in m_dbFixture.CreateContext().Messages select a).ToList();
+            Assert.Single(models);
+        }
 
-        //     // Assert
-        //     Assert.Single(models);
-        //     Assert.Equivalent(message, models[0]);
-        // }
+        [Fact]
+        public async Task CreateMessage_ExceptionThrown()
+        {
+            // Arrange
+            var users = await CreateDefaultUsers();
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
+            await CreateSingleMessageFrom(message);
 
-        // [Fact]
-        // public async Task CreateMessage_ExceptionThrown()
-        // {
-        //     // Arrange
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now,
-        //         "Test Content",
-        //         false, 0, "");
+            // Act & Assert
+            await Assert.ThrowsAsync<DbUpdateException>(() => m_messageRepository.CreateMessage(MessageConverter.DbToCoreModel(message)));
+        }
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.AddAsync(It.IsAny<MessageDbModel>(), It.IsAny<CancellationToken>()))
-        //         .ThrowsAsync(new Exception("Database Error"));
+        [Fact]
+        public async Task DeleteMessage_Ok()
+        {
+            // Arrange
+            var users = await CreateDefaultUsers();
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
+            await CreateSingleMessageFrom(message);
 
-        //     // Act & Assert
-        //     await Assert.ThrowsAsync<Exception>(() => m_messageRepository.CreateMessage(MessageConverter.DbToCoreModel(message)));
-        // }
+            // Act
+            await m_messageRepository.DeleteMessage(MessageConverter.DbToCoreModel(message));
 
-        // [Fact]
-        // public async Task DeleteMessage_Ok()
-        // {
-        //     // Arrange
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now,
-        //         "Test Content",
-        //         false, 0, "");
+            // Assert
+            var models = (from a in m_dbFixture.CreateContext().Messages select a).ToList();
+            Assert.Empty(models);
+        }
 
-        //     List<MessageDbModel> models = [message];
+        [Fact]
+        public async Task DeleteMessage_NotFound()
+        {
+            // Arrange
+            var users = await CreateDefaultUsers();
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.FindAsync(It.IsAny<Guid>()))
-        //         .ReturnsAsync(message);
+            // Act
+            await m_messageRepository.DeleteMessage(MessageConverter.DbToCoreModel(message));
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.Remove(It.IsAny<MessageDbModel>()))
-        //         .Callback((MessageDbModel m) => models.Remove(m));
+            // Assert
+            var models = (from a in m_dbFixture.CreateContext().Messages select a).ToList();
+            Assert.Empty(models);
+        }
 
-        //     // Act
-        //     await m_messageRepository.DeleteMessage(MessageConverter.DbToCoreModel(message));
+        [Fact]
+        public async Task GetMessageByID_Ok()
+        {
+            // Arrange
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
+            await CreateSingleMessageFrom(message);
 
-        //     // Assert
-        //     Assert.Empty(models);
-        // }
+            // Act
+            var result = await m_messageRepository.GetMessageByID(message.ID);
 
-        // [Fact]
-        // public async Task DeleteMessage_NotFound()
-        // {
-        //     // Arrange
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now,
-        //         "Test Content",
-        //         false, 0, "");
+            // Assert
+            Assert.NotNull(result);
+        }
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.FindAsync(It.IsAny<Guid>()))
-        //         .ReturnsAsync((MessageDbModel)null);
+        [Fact]
+        public async Task GetMessageByID_NotFound()
+        {
+            // Arrange
+            var messageID = Guid.NewGuid();
 
-        //     // Act
-        //     await m_messageRepository.DeleteMessage(MessageConverter.DbToCoreModel(message));
+            // Act
+            var result = await m_messageRepository.GetMessageByID(messageID);
 
-        //     // Assert
-        //     // No exception should be thrown
-        //     m_mockDbContextFactory.MockMessages.Verify(s => s.Remove(It.IsAny<MessageDbModel>()), Times.Never);
-        // }
+            // Assert
+            Assert.Null(result);
+        }
 
-        // [Fact]
-        // public async Task GetMessageByID_Ok()
-        // {
-        //     // Arrange
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now,
-        //         "Test Content",
-        //         false, 0, "");
+        [Fact]
+        public async Task UpdateMessage_Ok()
+        {
+            // Arrange
+            var users = await CreateDefaultUsers();
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
+            await CreateSingleMessageFrom(message);
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.FindAsync(It.IsAny<Guid>()))
-        //         .ReturnsAsync(message);
+            var updatedMessage = MessageDbModelFactory.Create(
+                message.ID,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                DateTime.Now,
+                "New Content",
+                false, 0, "");
 
-        //     // Act
-        //     var result = await m_messageRepository.GetMessageByID(message.ID);
+            // Act
+            await m_messageRepository.UpdateMessage(MessageConverter.DbToCoreModel(updatedMessage));
 
-        //     // Assert
-        //     Assert.NotNull(result);
-        //     Assert.Equivalent(MessageConverter.DbToCoreModel(message), result);
-        // }
+            // Assert
+            var models = (from a in m_dbFixture.CreateContext().Messages select a).ToList();
+            Assert.Equal(updatedMessage.Content, models[0].Content);
+            Assert.Equal(updatedMessage.isReadFlag, models[0].isReadFlag);
+        }
 
-        // [Fact]
-        // public async Task GetMessageByID_NotFound()
-        // {
-        //     // Arrange
-        //     var messageID = Guid.NewGuid();
+        [Fact]
+        public async Task UpdateMessage_NotFound()
+        {
+            // Arrange
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.FindAsync(It.IsAny<Guid>()))
-        //         .ReturnsAsync((MessageDbModel)null);
+            // Act
+            await m_messageRepository.UpdateMessage(MessageConverter.DbToCoreModel(message));
 
-        //     // Act
-        //     var result = await m_messageRepository.GetMessageByID(messageID);
+            // Assert
+            var models = (from a in m_dbFixture.CreateContext().Messages select a).ToList();
+            Assert.Single(models);
+        }
 
-        //     // Assert
-        //     Assert.Null(result);
-        // }
+        [Fact]
+        public async Task GetUserMessagesInDialog_Ok()
+        {
+            // Arrange
+            var users = await CreateDefaultUsers();
+            var dialog = DialogDbModelFactory.Create(
+                Guid.NewGuid(),
+                false,
+                users[0].ID,
+                users[1].ID);
+            await CreateSingleDialogFrom(dialog);
 
-        // [Fact]
-        // public async Task UpdateMessage_Ok()
-        // {
-        //     // Arrange
-        //     var existingMessage = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now,
-        //         "Old Content",
-        //         false, 0, "");
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                users[0].ID,
+                dialog.ID,
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
+            await CreateSingleMessageFrom(message);
 
-        //     var updatedMessage = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now,
-        //         "New Content",
-        //         false, 0, "");
+            // Act
+            var result = await m_messageRepository.GetUserMessagesInDialog(
+                UserConverter.DbToCoreModel(users[0]),
+                DialogConverter.DbToCoreModel(dialog));
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.FindAsync(It.IsAny<Guid>()))
-        //         .ReturnsAsync(existingMessage);
+            // Assert
+            Assert.Single(result);
+        }
 
-        //     // Act
-        //     await m_messageRepository.UpdateMessage(MessageConverter.DbToCoreModel(updatedMessage));
+        [Fact]
+        public async Task GetUserMessagesInDialog_NotFound()
+        {
+            // Arrange
+            var user = UserFactory.CreateEmpty();
+            var dialog = DialogFactory.CreateEmpty();
 
-        //     // Assert
-        //     Assert.Equal(updatedMessage.Content, existingMessage.Content);
-        //     Assert.Equal(updatedMessage.isReadFlag, existingMessage.isReadFlag);
-        // }
+            // Act
+            var result = await m_messageRepository.GetUserMessagesInDialog(user, dialog);
 
-        // [Fact]
-        // public async Task UpdateMessage_NotFound()
-        // {
-        //     // Arrange
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now,
-        //         "Test Content",
-        //         false, 0, "");
+            // Assert
+            Assert.Empty(result);
+        }
 
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.FindAsync(It.IsAny<Guid>()))
-        //         .ReturnsAsync((MessageDbModel)null);
+        [Fact]
+        public async Task GetAllMessagesInDialog_Ok()
+        {
+            // Arrange
+            var users = await CreateDefaultUsers();
+            var dialog = DialogDbModelFactory.Create(
+                Guid.NewGuid(),
+                false,
+                users[0].ID,
+                users[1].ID);
+            await CreateSingleDialogFrom(dialog);
 
-        //     // Act
-        //     await m_messageRepository.UpdateMessage(MessageConverter.DbToCoreModel(message));
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                users[0].ID,
+                dialog.ID,
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
+            await CreateSingleMessageFrom(message);
 
-        //     // Assert
-        //     m_mockDbContextFactory.MockMessages.Verify(s => s.AddAsync(It.IsAny<MessageDbModel>(), It.IsAny<CancellationToken>()), Times.Once);
-        // }
+            // Act
+            var result = await m_messageRepository.GetAllMessagesInDialog(DialogConverter.DbToCoreModel(dialog));
 
-        // [Fact]
-        // public async Task GetUserMessagesInDialog_Ok()
-        // {
-        //     // Arrange
-        //     var user = UserFactory.CreateEmpty();
-        //     var dialog = DialogFactory.CreateEmpty();
+            // Assert
+            Assert.Single(result);
+        }
 
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         user.ID,
-        //         dialog.ID,
-        //         DateTime.Now,
-        //         "Test Content",
-        //         false, 0, "");
+        [Fact]
+        public async Task GetAllMessagesInDialog_NotFound()
+        {
+            // Arrange
+            var dialog = DialogFactory.CreateEmpty();
 
-        //     List<MessageDbModel> messages = new List<MessageDbModel> { message };
+            // Act
+            var result = await m_messageRepository.GetAllMessagesInDialog(dialog);
 
-        //     m_mockDbContextFactory
-        //         .MockContext
-        //             .Setup(x => x.Messages)
-        //             .ReturnsDbSet(messages);
+            // Assert
+            Assert.Empty(result);
+        }
 
-        //     // Act
-        //     var result = await m_messageRepository.GetUserMessagesInDialog(user, dialog);
+        [Fact]
+        public async Task GetAllMessages_Ok()
+        {
+            // Arrange
+            var users = await CreateDefaultUsers();
+            var dialog = DialogDbModelFactory.Create(
+                Guid.NewGuid(),
+                false,
+                users[0].ID,
+                users[1].ID);
+            await CreateSingleDialogFrom(dialog);
 
-        //     // Assert
-        //     Assert.Single(result);
-        //     Assert.Equivalent(MessageConverter.DbToCoreModel(message), result[0]);
-        // }
+            var message = MessageDbModelFactory.Create(
+                Guid.NewGuid(),
+                users[0].ID,
+                dialog.ID,
+                DateTime.Now.ToUniversalTime(),
+                "Test Content",
+                false, 0, "");
+            await CreateSingleMessageFrom(message);
 
-        // [Fact]
-        // public async Task GetUserMessagesInDialog_NotFound()
-        // {
-        //     // Arrange
-        //     var user = UserFactory.CreateEmpty();
-        //     var dialog = DialogFactory.CreateEmpty();
+            // Act
+            var result = await m_messageRepository.GetAllMessages();
 
-        //     List<MessageDbModel> messages = [];
+            // Assert
+            Assert.Single(result);
+        }
 
-        //     m_mockDbContextFactory
-        //         .MockContext
-        //             .Setup(x => x.Messages)
-        //             .ReturnsDbSet(messages);
+        [Fact]
+        public async Task GetAllMessages_Empty()
+        {
+            // Arrange
 
-        //     // Act
-        //     var result = await m_messageRepository.GetUserMessagesInDialog(user, dialog);
+            // Act
+            var result = await m_messageRepository.GetAllMessages();
 
-        //     // Assert
-        //     Assert.Empty(result);
-        // }
-
-        // [Fact]
-        // public async Task GetAllMessagesInDialog_Ok()
-        // {
-        //     // Arrange
-        //     var dialog = DialogFactory.CreateEmpty();
-
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         dialog.ID,
-        //         DateTime.Now,
-        //         "Test Content",
-        //         false, 0, "");
-
-        //     List<MessageDbModel> messages = new List<MessageDbModel> { message };
-
-        //     m_mockDbContextFactory
-        //         .MockContext
-        //             .Setup(x => x.Messages)
-        //             .ReturnsDbSet(messages);
-
-        //     // Act
-        //     var result = await m_messageRepository.GetAllMessagesInDialog(dialog);
-
-        //     // Assert
-        //     Assert.Single(result);
-        //     Assert.Equivalent(MessageConverter.DbToCoreModel(message), result[0]);
-        // }
-
-        // [Fact]
-        // public async Task GetAllMessagesInDialog_NotFound()
-        // {
-        //     // Arrange
-        //     var dialog = DialogFactory.CreateEmpty();
-        //     List<MessageDbModel> messages = new List<MessageDbModel> { };
-
-        //     m_mockDbContextFactory
-        //         .MockContext
-        //             .Setup(x => x.Messages)
-        //             .ReturnsDbSet(messages);
-
-
-        //     // Act
-        //     var result = await m_messageRepository.GetAllMessagesInDialog(dialog);
-
-        //     // Assert
-        //     Assert.Empty(result);
-        // }
-
-        // [Fact]
-        // public async Task GetAllMessages_Ok()
-        // {
-        //     // Arrange
-        //     var message = MessageDbModelFactory.Create(
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         Guid.NewGuid(),
-        //         DateTime.Now,
-        //         "Test Content",
-        //         false, 0, "");
-
-        //     List<MessageDbModel> messages = new List<MessageDbModel> { message };
-
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.ToListAsync(It.IsAny<CancellationToken>()))
-        //         .ReturnsAsync(messages);
-
-        //     // Act
-        //     var result = await m_messageRepository.GetAllMessages();
-
-        //     // Assert
-        //     Assert.Single(result);
-        //     Assert.Equal(MessageConverter.DbToCoreModel(message), result[0]);
-        // }
-
-        // [Fact]
-        // public async Task GetAllMessages_Empty()
-        // {
-        //     // Arrange
-        //     m_mockDbContextFactory
-        //         .MockMessages
-        //         .Setup(s => s.ToListAsync(It.IsAny<CancellationToken>()))
-        //         .ReturnsAsync(new List<MessageDbModel>());
-
-        //     // Act
-        //     var result = await m_messageRepository.GetAllMessages();
-
-        //     // Assert
-        //     Assert.Empty(result);
-        // }
+            // Assert
+            Assert.Empty(result);
+        }
     }
 }

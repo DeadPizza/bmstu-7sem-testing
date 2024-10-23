@@ -1,3 +1,4 @@
+using Abp.Collections.Extensions;
 using BasedGram.Common.Enums;
 using BasedGram.Database.Npgsql.Models;
 using BasedGram.Database.Npgsql.Models.Converters;
@@ -37,212 +38,149 @@ public class TestUserRepository : TestRepositoryBase
         Assert.Equivalent(user, models[0]);
     }
 
-    // [Fact]
-    // public async Task CreateUser_NonUniqueException()
-    // {
-    //     // Arrange
-    //     var user = UserDbModelFactory.Create(Guid.NewGuid(), "TestUser", "TestHash", 0, false, false);
+    [Fact]
+    public async Task CreateUser_NonUniqueException()
+    {
+        // Arrange
+        var user = (await CreateDefaultUsers())[0];
 
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.AddAsync(It.IsAny<UserDbModel>(), default))
-    //         .Callback<UserDbModel, CancellationToken>((a, token) => throw new Exception());
+        // Act
+        async Task action() => await m_userRepository.CreateUser(UserConverter.DbToCoreModel(user));
 
-    //     // Act
-    //     async Task action() => await m_userRepository.CreateUser(UserConverter.DbToCoreModel(user));
+        // Assert
+        await Assert.ThrowsAsync<DbUpdateException>(action);
+    }
 
-    //     // Assert
-    //     await Assert.ThrowsAsync<Exception>(action);
-    // }
+    [Fact]
+    public async Task DeleteUser_Ok()
+    {
+        // Arrange
+        var user = await CreateSingleUser();
 
-    // [Fact]
-    // public async Task DeleteUser_Ok()
-    // {
-    //     // Arrange
-    //     var user = UserDbModelFactory.Create(Guid.NewGuid(), "TestUser", "TestHash", 0, false, false);
-    //     List<UserDbModel> models = new() { user };
+        // Act
+        await m_userRepository.DeleteUser(UserConverter.DbToCoreModel(user));
 
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.FindAsync(It.IsAny<Guid>()))
-    //         .ReturnsAsync(user);
+        // Assert
+        Assert.Empty(m_dbFixture.CreateContext().Users);
+    }
 
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.Remove(It.IsAny<UserDbModel>()))
-    //         .Callback<UserDbModel>(a => models.Remove(a));
+    [Fact]
+    public async Task DeleteUser_NotFound()
+    {
+        // Arrange
+        var user = UserDbModelFactory.Create(Guid.NewGuid(), "TestUser", "TestHash", 0, false, false);
 
-    //     // Act
-    //     await m_userRepository.DeleteUser(UserConverter.DbToCoreModel(user));
+        // Act
+        await m_userRepository.DeleteUser(UserConverter.DbToCoreModel(user));
 
-    //     // Assert
-    //     Assert.Empty(models);
-    // }
+        // Assert
+        Assert.Empty(m_dbFixture.CreateContext().Users);
+    }
 
-    // [Fact]
-    // public async Task DeleteUser_NotFound()
-    // {
-    //     // Arrange
-    //     var user = UserDbModelFactory.Create(Guid.NewGuid(), "TestUser", "TestHash", 0, false, false);
+    [Fact]
+    public async Task GetUserByID_Ok()
+    {
+        // Arrange
+        var user = await CreateSingleUser();
 
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.FindAsync(It.IsAny<Guid>()))
-    //         .ReturnsAsync((UserDbModel)null);
+        // Act
+        var result = await m_userRepository.GetUserByID(user.ID);
 
-    //     // Act
-    //     await m_userRepository.DeleteUser(UserConverter.DbToCoreModel(user));
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(user.Login, result.Login);
+    }
 
-    //     // Assert
-    //     m_mockDbContextFactory.MockUsers.Verify(s => s.Remove(It.IsAny<UserDbModel>()), Times.Never);
-    // }
+    [Fact]
+    public async Task GetUserByID_NotFound()
+    {
+        // Arrange
 
-    // [Fact]
-    // public async Task GetUserByID_Ok()
-    // {
-    //     // Arrange
-    //     var user = UserDbModelFactory.Create(Guid.NewGuid(), "TestUser", "TestHash", 0, false, false);
+        // Act
+        var result = await m_userRepository.GetUserByID(Guid.NewGuid());
 
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.FindAsync(It.IsAny<Guid>()))
-    //         .ReturnsAsync(user);
+        // Assert
+        Assert.Null(result);
+    }
 
-    //     // Act
-    //     var result = await m_userRepository.GetUserByID(user.ID);
+    [Fact]
+    public async Task ListAllAdmins_Ok()
+    {
+        // Arrange
+        var admin1 = await CreateSingleUserFrom(UserDbModelFactory.Create(Guid.NewGuid(), "Admin1", "TestHash1", 1, false, false));
+        var admin2 = await CreateSingleUserFrom(UserDbModelFactory.Create(Guid.NewGuid(), "Admin2", "TestHash2", 1, false, false));
 
-    //     // Assert
-    //     Assert.NotNull(result);
-    //     Assert.Equal(user.Login, result.Login);
-    // }
+        // Act
+        var admins = await m_userRepository.ListAllAdmins();
 
-    // [Fact]
-    // public async Task GetUserByID_NotFound()
-    // {
-    //     // Arrange
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.FindAsync(It.IsAny<Guid>()))
-    //         .ReturnsAsync((UserDbModel)null);
+        // Assert
+        Assert.Equal(2, admins.Count);
+        Assert.True(admins.All(a => a.Role == Role.Admin));
+    }
 
-    //     // Act
-    //     var result = await m_userRepository.GetUserByID(Guid.NewGuid());
+    [Fact]
+    public async Task ListAllAdmins_Empty()
+    {
+        // Arrange
 
-    //     // Assert
-    //     Assert.Null(result);
-    // }
+        // Act
+        var admins = await m_userRepository.ListAllAdmins();
 
-    // [Fact]
-    // public async Task ListAllAdmins_Ok()
-    // {
-    //     // Arrange
-    //     var admin1 = UserDbModelFactory.Create(Guid.NewGuid(), "Admin1", "TestHash", 1, false, false);
-    //     var admin2 = UserDbModelFactory.Create(Guid.NewGuid(), "Admin2", "TestHash", 1, false, false);
-    //     List<UserDbModel> models = new() { admin1, admin2 };
+        // Assert
+        Assert.Empty(admins);
+    }
 
-    //     m_mockDbContextFactory
-    //         .MockContext
-    //             .Setup(x => x.Users)
-    //             .ReturnsDbSet(models);
+    [Fact]
+    public async Task ListAllUsers_Ok()
+    {
+        // Arrange
+        List<UserDbModel> models = await CreateDefaultUsers();
+        // Act
+        var users = await m_userRepository.ListAllUsers();
 
-    //     // Act
-    //     var admins = await m_userRepository.ListAllAdmins();
+        // Assert
+        Assert.Equal(2, users.Count);
+        Assert.True(users.All(u => u.Role == 0));
+    }
 
-    //     // Assert
-    //     Assert.Equal(2, admins.Count);
-    //     Assert.True(admins.All(a => a.Role == Role.Admin));
-    // }
+    [Fact]
+    public async Task ListAllUsers_Empty()
+    {
+        // Arrange
 
-    // [Fact]
-    // public async Task ListAllAdmins_Empty()
-    // {
-    //     // Arrange
-    //     List<UserDbModel> models = new();
+        // Act
+        var users = await m_userRepository.ListAllUsers();
 
-    //     m_mockDbContextFactory
-    //         .MockContext
-    //             .Setup(x => x.Users)
-    //             .ReturnsDbSet(models);
+        // Assert
+        Assert.Empty(users);
+    }
 
-    //     // Act
-    //     var admins = await m_userRepository.ListAllAdmins();
+    [Fact]
+    public async Task UpdateUser_Ok()
+    {
+        // Arrange
+        var user = await CreateSingleUser();
 
-    //     // Assert
-    //     Assert.Empty(admins);
-    // }
+        // Act
+        user.Login = "UpdatedUser";
+        await m_userRepository.UpdateUser(UserConverter.DbToCoreModel(user));
 
-    // [Fact]
-    // public async Task ListAllUsers_Ok()
-    // {
-    //     // Arrange
-    //     var user1 = UserDbModelFactory.Create(Guid.NewGuid(), "User1", "TestHash", 0, false, false);
-    //     var user2 = UserDbModelFactory.Create(Guid.NewGuid(), "User1", "TestHash", 0, false, false);
-    //     List<UserDbModel> models = new() { user1, user2 };
+        // Assert
+        Assert.Equal("UpdatedUser", (from a in m_dbFixture.CreateContext().Users select a).ToList()[0].Login);
+    }
 
-    //     m_mockDbContextFactory
-    //         .MockContext
-    //             .Setup(x => x.Users)
-    //             .ReturnsDbSet(models);
+    [Fact]
+    public async Task UpdateUser_AddNew()
+    {
+        // Arrange
+        var user = UserDbModelFactory.Create(Guid.NewGuid(), "User1", "TestHash", 0, false, false);
 
-    //     // Act
-    //     var users = await m_userRepository.ListAllUsers();
+        // Act
+        await m_userRepository.UpdateUser(UserConverter.DbToCoreModel(user));
 
-    //     // Assert
-    //     Assert.Equal(2, users.Count);
-    //     Assert.True(users.All(u => u.Role == 0));
-    // }
-
-    // [Fact]
-    // public async Task ListAllUsers_Empty()
-    // {
-    //     // Arrange
-    //     List<UserDbModel> models = new();
-
-    //     m_mockDbContextFactory
-    //         .MockContext
-    //             .Setup(x => x.Users)
-    //             .ReturnsDbSet(models);
-
-    //     // Act
-    //     var users = await m_userRepository.ListAllUsers();
-
-    //     // Assert
-    //     Assert.Empty(users);
-    // }
-
-    // [Fact]
-    // public async Task UpdateUser_Ok()
-    // {
-    //     // Arrange
-    //     var user = UserDbModelFactory.Create(Guid.NewGuid(), "User1", "TestHash", 0, false, false);
-    //     List<UserDbModel> models = new() { user };
-
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.FindAsync(It.IsAny<Guid>()))
-    //         .ReturnsAsync(user);
-
-    //     // Act
-    //     user.Login = "UpdatedUser";
-    //     await m_userRepository.UpdateUser(UserConverter.DbToCoreModel(user));
-
-    //     // Assert
-    //     Assert.Equal("UpdatedUser", models[0].Login);
-    // }
-
-    // [Fact]
-    // public async Task UpdateUser_AddNew()
-    // {
-    //     // Arrange
-    //     var user = UserDbModelFactory.Create(Guid.NewGuid(), "User1", "TestHash", 0, false, false);
-    //     List<UserDbModel> models = new();
-
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.FindAsync(It.IsAny<Guid>()))
-    //         .ReturnsAsync((UserDbModel)null);
-
-    //     m_mockDbContextFactory
-    //         .MockUsers.Setup(s => s.AddAsync(It.IsAny<UserDbModel>(), default))
-    //         .Callback<UserDbModel, CancellationToken>((a, token) => models.Add(a));
-
-    //     // Act
-    //     await m_userRepository.UpdateUser(UserConverter.DbToCoreModel(user));
-
-    //     // Assert
-    //     Assert.Single(models);
-    //     Assert.Equal(user.Login, models[0].Login);
-    // }
+        // Assert
+        var models = (from a in m_dbFixture.CreateContext().Users select a).ToList();
+        Assert.Single(models);
+        Assert.Equal(user.Login, models[0].Login);
+    }
 }

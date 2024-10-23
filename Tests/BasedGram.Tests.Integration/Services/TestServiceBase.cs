@@ -1,13 +1,21 @@
-using System.Collections;
+using BasedGram.Common.Core;
 using BasedGram.Common.Enums;
+using BasedGram.Database.Core.Repositories;
+using BasedGram.Database.Npgsql.Models.Converters;
 using BasedGram.Database.Npgsql.Models;
 using BasedGram.Tests.Common.Factories.Db;
+using Moq;
+using BasedGram.Database.NpgsqlRepositories;
 
-namespace BasedGram.Tests.Integration.Repositories;
+namespace BasedGram.Tests.Integration.Services;
 
-public class TestRepositoryBase(DatabaseFixture dbFixture) : IAsyncLifetime
+public class TestServiceBase(DatabaseFixture dbFixture) : IAsyncLifetime
 {
     protected readonly DatabaseFixture m_dbFixture = dbFixture;
+
+    public UserRepository m_userRepository = new(dbFixture.CreateContext());
+    public DialogRepository m_dialogRepository = new(dbFixture.CreateContext());
+    public MessageRepository m_messageRepository = new(dbFixture.CreateContext());
 
     public Task DisposeAsync()
     {
@@ -17,7 +25,61 @@ public class TestRepositoryBase(DatabaseFixture dbFixture) : IAsyncLifetime
     public Task InitializeAsync()
     {
         m_dbFixture.Cleanup();
+        m_userRepository = new(dbFixture.CreateContext());
+        m_dialogRepository = new(dbFixture.CreateContext());
+        m_messageRepository = new(dbFixture.CreateContext());
         return Task.CompletedTask;
+    }
+
+    protected List<User> m_users
+    {
+        get
+        {
+            return [.. (from a in m_dbFixture.CreateContext().Users select a).Select(u => UserConverter.DbToCoreModel(u))];
+        }
+        set
+        {
+            var context = m_dbFixture.CreateContext();
+            foreach (var item in value)
+            {
+                context.Users.Add(UserConverter.CoreToDbModel(item));
+                context.SaveChanges();
+            }
+        }
+    }
+
+    protected List<Dialog> m_dialogs
+    {
+        get
+        {
+            return [.. (from a in m_dbFixture.CreateContext().Dialogs select a).Select(u => DialogConverter.DbToCoreModel(u))];
+        }
+        set
+        {
+            var context = m_dbFixture.CreateContext();
+            foreach (var item in value)
+            {
+                context.Dialogs.Add(DialogConverter.CoreToDbModel(item));
+                context.SaveChanges();
+            }
+        }
+    }
+
+    protected List<Message> m_messages
+    {
+        get
+        {
+            return [.. (from a in m_dbFixture.CreateContext().Messages select a).Select(u => MessageConverter.DbToCoreModel(u))];
+        }
+        set
+        {
+            var context = m_dbFixture.CreateContext();
+            foreach (var item in value)
+            {
+                context.Messages.Add(MessageConverter.CoreToDbModel(item));
+                context.SaveChanges();
+            }
+        }
     }
 
     public Guid MakeGuid(byte val)

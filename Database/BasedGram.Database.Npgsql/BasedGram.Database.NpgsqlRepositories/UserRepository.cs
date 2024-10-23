@@ -65,7 +65,7 @@ public class UserRepository(BasedGramNpgsqlDbContext context) : IUserRepository
         var userDbModel = await m_context.Users.FindAsync(user.ID);
         if (userDbModel is not null)
         {
-            userDbModel = UserConverter.CoreToDbModel(user);
+            userDbModel.Login = user.Login;
             // m_context.Users.Update(UserConverter.CoreToDbModel(user));
         }
         else
