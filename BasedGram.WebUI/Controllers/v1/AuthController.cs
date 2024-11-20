@@ -30,24 +30,11 @@ public class AuthController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] RegisterDTO data)
     {
-        if (data.login == null || data.login.Length == 0
-        || data.password == null || data.password.Length == 0
-        || data.password_repeat == null || data.password_repeat.Length == 0)
-        {
-            return StatusCode(401);
-        }
-
-        if (data.login.All(p => p.Equals(' ')) || data.password.All(p => p.Equals(' ')) || data.password_repeat.All(p => p.Equals(' ')))
-        {
-            return StatusCode(401);
-        }
-
-
-        if(data.password != data.password_repeat)
-        {
-            return StatusCode(401);
-        }
-        // Console.WriteLine($"{data.login}, {data.password}, {data.password_repeat}");
+        // if(data.password != data.password_repeat)
+        // {
+        //     return StatusCode(401);
+        // }
+        // // Console.WriteLine($"{data.login}, {data.password}, {data.password_repeat}");
 
         // if(data.password != data.password_repeat)
         // {
