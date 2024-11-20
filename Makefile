@@ -7,9 +7,9 @@ unit-tests:
 	dotnet test Tests/BasedGram.Tests.Unit
 
 integration-tests:
-	docker compose up -d
+	sudo docker compose up -d
 	dotnet test Tests/BasedGram.Tests.Integration
-	docker compose down
+	sudo docker compose down
 
 e2e-tests:
 	docker compose up -d
@@ -22,5 +22,8 @@ concat-reports:
 	cp Tests/integration-allure-results/* allure-results/
 	cp Tests/e2e-allure-results/* allure-results/
 
+static-analysis:
+	dotnet run --project HalsteadCompAnalyzer/ BasedGram.WebUI/
+
 .PHONY:
-	generate-allure-report unit-tests integration-tests e2e-tests concat-reports
+	generate-allure-report unit-tests integration-tests e2e-tests concat-reports static-analysis
