@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasedGram.WebUI", "BasedGra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HalsteadCompAnalyzer", "HalsteadCompAnalyzer\HalsteadCompAnalyzer.csproj", "{F90F8161-05F3-4B41-852E-C23CBC6385F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2E", "E2E\E2E.csproj", "{32F663C5-C054-4122-A13F-870EA9B83E6E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -150,6 +152,10 @@ Global
 		{F90F8161-05F3-4B41-852E-C23CBC6385F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F90F8161-05F3-4B41-852E-C23CBC6385F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F90F8161-05F3-4B41-852E-C23CBC6385F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32F663C5-C054-4122-A13F-870EA9B83E6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32F663C5-C054-4122-A13F-870EA9B83E6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32F663C5-C054-4122-A13F-870EA9B83E6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32F663C5-C054-4122-A13F-870EA9B83E6E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1B0B94EB-D30F-4B8E-971C-550E52F8B3CE} = {1C1D4EB3-8029-4A69-9017-D4724B159D81}

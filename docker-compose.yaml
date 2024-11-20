@@ -22,6 +22,11 @@ services:
       POSTGRES_HOST: postgresql-testdb
       POSTGRES_PORT: 5432
       BACKEND_TYPE: docker
+      SMTP_HOST: ${SMTP_HOST}
+      USER_EMAIL: ${USER_EMAIL}
+      SENDER_EMAIL: ${SENDER_EMAIL}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      VERIFICATION_CODE: ${VERIFICATION_CODE}
     ports:
       - 9898:9898
   

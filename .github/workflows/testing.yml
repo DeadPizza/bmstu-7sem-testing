@@ -8,6 +8,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: lab_04_env
+    
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET Core
