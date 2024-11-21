@@ -102,14 +102,15 @@ namespace E2E.Features
     testRunner.Given("the authentication controller is initialized for reset", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 4
-    testRunner.When("the user logs in with email \"trehsmeh@gmail.com\" and password \"1337\" for reset", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("the user logs in with email \"alekseyryzhkin@gmail.com\" and password \"1337\" for re" +
+                        "set", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 5
     testRunner.Then("a verification code is sent to the email for reset", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 6
-    testRunner.When("the user enters the verification code \"123456\" for email \"trehsmeh@gmail.com\" and" +
-                        " sends password \"123\" for reset", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("the user enters the verification code \"123456\" for email \"alekseyryzhkin@gmail.co" +
+                        "m\" and sends password \"123\" for reset", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 7
     testRunner.Then("the password is reset successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");

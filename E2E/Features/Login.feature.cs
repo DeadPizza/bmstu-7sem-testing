@@ -102,13 +102,14 @@ namespace E2E.Features
     testRunner.Given("the authentication controller is initialized", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
 #line 5
-    testRunner.When("the user logs in with email \"trehsmeh@gmail.com\" and password \"1337\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("the user logs in with email \"alekseyryzhkin@gmail.com\" and password \"1337\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 6
     testRunner.Then("a verification code is sent to the email", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 7
-    testRunner.When("the user enters the verification code \"123456\" for email \"trehsmeh@gmail.com\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("the user enters the verification code \"123456\" for email \"alekseyryzhkin@gmail.co" +
+                        "m\"", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 8
     testRunner.Then("the account is verified successfully", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
