@@ -14,6 +14,7 @@ integration-tests:
 e2e-tests:
 	docker compose up -d
 	dotnet test Tests/BasedGram.Tests.E2E
+	dotnet test E2E/
 	docker compose down
 
 concat-reports:
