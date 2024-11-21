@@ -18,21 +18,6 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - run: dotnet restore
 
-      - name: 'Create env file'
-        shell: bash
-        env:
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          USER_EMAIL: ${{ secrets.USER_EMAIL }}
-          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          VERIFICATION_CODE: ${{ secrets.VERIFICATION_CODE }}
-        run: |
-          echo "SMTP_HOST=${SMTP_HOST}" >> .env
-          echo "USER_EMAIL=${USER_EMAIL}" >> .env
-          echo "SENDER_EMAIL=${SENDER_EMAIL}" >> .env
-          echo "EMAIL_PASSWORD=${EMAIL_PASSWORD}" >> .env
-          echo "VERIFICATION_CODE=${VERIFICATION_CODE}" >> .env
-
       - name: Run static analysis
         run: make static-analysis
 
@@ -46,7 +31,13 @@ jobs:
       - name: Run e2e tests
         if: '!failure()'
         run: make e2e-tests
-  
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          USER_EMAIL: ${{ secrets.USER_EMAIL }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          VERIFICATION_CODE: ${{ secrets.VERIFICATION_CODE }}
+
       - name: Processing report data
         run: make concat-reports -i
         if: always()
